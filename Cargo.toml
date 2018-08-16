@@ -1,0 +1,9 @@
+[package]
+name = "mysqldiff"
+version = "0.1.0"
+authors = ["0ranga"]
+
+[dependencies]
+mysql = "*"
+regex = "1"
+lazy_static = "1.1.0"
