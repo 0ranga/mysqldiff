@@ -10,22 +10,31 @@ use regex::Regex;
 use regex::RegexBuilder;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::env;
 use std::iter::FromIterator;
 
-mod example;
+mod test;
 
+/// usage cargo run <imitator_uri> <template_uri>
 fn main() {
-    let template = Pool::new("mysql://root:zaq1xsw2@localhost:3306/template").unwrap();
-    let imitator = Pool::new("mysql://root:zaq1xsw2@localhost:3306/imitator").unwrap();
+    let args: Vec<String> = env::args().collect();
 
-    let template_tbls = extract_tables(&template);
-    let imitator_tbls = extract_tables(&imitator);
-    let diff = diff(&template_tbls, &imitator_tbls);
+    let imitator_uri = &args[1];
+    let template_uri = &args[2];
 
-    diff.iter().for_each(|k| println!("{}", k));
+    diff(template_uri, imitator_uri);
 }
 
-fn diff(template: &HashMap<String, Table>, imitator: &HashMap<String, Table>) -> Vec<String> {
+fn diff(template_uri: &str, imitator_uri: &str) -> Vec<String> {
+    let template = Pool::new(template_uri).unwrap();
+    let imitator = Pool::new(imitator_uri).unwrap();
+    let template_tbls = extract_tables(&template);
+    let imitator_tbls = extract_tables(&imitator);
+    let diff = diff0(&template_tbls, &imitator_tbls);
+    diff
+}
+
+fn diff0(template: &HashMap<String, Table>, imitator: &HashMap<String, Table>) -> Vec<String> {
     let tmps: HashSet<&String> = HashSet::from_iter(template.keys());
     let imis: HashSet<&String> = HashSet::from_iter(imitator.keys());
 
