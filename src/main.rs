@@ -222,7 +222,8 @@ impl Table {
             .for_each(|line| {
                 let pkey = PRIMARY_KEY_PATTERN.captures(line);
                 if pkey.is_some() {
-                    primary_keys.push(pkey.unwrap().get(0).unwrap().as_str().to_string())
+                    let x = pkey.unwrap().get(1).unwrap().as_str().to_string();
+                    primary_keys.push(x)
                 }
 
                 let ukey = UNIQUE_KEY_PATTERN.captures(line);
