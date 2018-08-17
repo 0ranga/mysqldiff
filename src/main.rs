@@ -15,9 +15,13 @@ use std::iter::FromIterator;
 mod example;
 
 fn main() {
-    let pool1 = Pool::new("mysql://root:zaq1xsw2@localhost:3306/differ").unwrap();
-    let csql1 = extract_tables(&pool1);
-    let diff = diff(&csql1, &csql1);
+    let template = Pool::new("mysql://root:zaq1xsw2@localhost:3306/template").unwrap();
+    let imitator = Pool::new("mysql://root:zaq1xsw2@localhost:3306/imitator").unwrap();
+
+    let template_tbls = extract_tables(&template);
+    let imitator_tbls = extract_tables(&imitator);
+    let diff = diff(&template_tbls, &imitator_tbls);
+
     diff.iter().for_each(|k| println!("{}", k));
 }
 
@@ -77,7 +81,7 @@ fn diff_table_columns(template: &Vec<Column>, imitator: &Vec<Column>) -> Vec<Str
     let intersection = tmp_cols.intersection(&imi_cols);
 
     let mut difference = Vec::new();
-    to_add.for_each(|c| difference.push(format!("ADD {} {}", c, imi_col_map.get(c).unwrap())));
+    to_add.for_each(|c| difference.push(format!("ADD {} {}", c, tmp_col_map.get(c).unwrap())));
     to_drop.for_each(|c| difference.push(format!("DROP {}", c)));
     intersection.for_each(|c| {
         if tmp_col_map.get(c) != imi_col_map.get(c) {
@@ -117,9 +121,9 @@ fn diff_table_ordinary_keys<F, G>(
     add_format: F,
     drop_format: G,
 ) -> Vec<String>
-    where
-        F: Fn(&StringTuple) -> String,
-        G: Fn(&StringTuple) -> String,
+where
+    F: Fn(&StringTuple) -> String,
+    G: Fn(&StringTuple) -> String,
 {
     let mut difference = Vec::new();
     let tmp_keys: HashSet<&String> = template.iter().map(|c| &(c.1)).collect();
@@ -248,8 +252,8 @@ impl Table {
 
     fn gen_tuple(cpt: Captures) -> StringTuple {
         StringTuple(
-            cpt.get(0).unwrap().as_str().to_string(),
-            cpt.get(1).unwrap().as_str().to_string(),
+            cpt.get(1).unwrap().as_str().trim().to_string(),
+            cpt.get(2).unwrap().as_str().trim().to_string(),
         )
     }
 }
